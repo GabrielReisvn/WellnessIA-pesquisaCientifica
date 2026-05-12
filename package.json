@@ -1,0 +1,17 @@
+{
+  "name": "wellness-ai-organizacional",
+  "version": "1.0.0",
+  "description": "Monitoramento Inteligente e Ético para Saúde Mental e Bem-Estar Organizacional",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.22.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

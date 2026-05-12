@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WellnessAI — Monitoramento Organizacional</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #252a3a;
+    --text: #e8eaf0;
+    --muted: #7a8099;
+    --accent: #6ee7b7;
+    --accent2: #818cf8;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --critical: #ef4444;
+    --low: #34d399;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    padding: 24px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .logo-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 8px;
+  }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid;
+    letter-spacing: 1px;
+  }
+
+  .badge-lgpd { color: var(--accent); border-color: var(--accent); }
+  .badge-live { color: var(--accent2); border-color: var(--accent2); }
+
+  /* LAYOUT */
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 40px; }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .section-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    font-weight: 300;
+  }
+
+  /* GRID STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--accent2); }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-value.danger { color: var(--danger); }
+  .stat-value.warn { color: var(--warn); }
+  .stat-value.good { color: var(--accent); }
+
+  .stat-desc { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .table-header h3 { font-size: 14px; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 14px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid #1a1f2e;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: var(--surface2); }
+
+  .risk-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 120px;
+  }
+
+  .risk-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .risk-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  .risk-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    min-width: 28px;
+    text-align: right;
+  }
+
+  .chip {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .chip-critical { background: #3b1414; color: var(--critical); }
+  .chip-high     { background: #3b2714; color: var(--warn); }
+  .chip-moderate { background: #2a2a14; color: #fde68a; }
+  .chip-low      { background: #14312a; color: var(--low); }
+
+  .trend-up { color: var(--danger); }
+  .trend-down { color: var(--low); }
+  .trend-flat { color: var(--muted); }
+
+  /* AI PANEL */
+  .ai-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 40px;
+    overflow: hidden;
+  }
+
+  .ai-panel-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ai-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .ai-panel-content { padding: 24px; }
+
+  .employee-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .emp-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .emp-btn:hover, .emp-btn.active {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: #1e2040;
+  }
+
+  .emp-btn.high-risk { border-color: #4a2020; color: var(--danger); }
+  .emp-btn.high-risk:hover, .emp-btn.high-risk.active {
+    background: #3b1414;
+    border-color: var(--danger);
+  }
+
+  .ai-result {
+    min-height: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .ai-result .loading {
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Analysis result cards */
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 0; }
+
+  .result-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .result-section.full { grid-column: 1 / -1; }
+
+  .result-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  ul.result-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  ul.result-list li {
+    padding: 5px 0;
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid #1a1f2e;
+  }
+
+  ul.result-list li:last-child { border-bottom: none; }
+  ul.result-list li::before { content: "→"; color: var(--accent); flex-shrink: 0; }
+
+  .intervention-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .intervention-card:last-child { margin-bottom: 0; }
+
+  .int-header {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+    align-items: center;
+  }
+
+  .int-action { line-height: 1.5; color: var(--text); }
+  .int-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* Climate section */
+  .dept-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .dept-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .dept-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .dept-stats { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 20px 40px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .error-msg {
+    color: var(--danger);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 12px;
+    background: #2a1414;
+    border-radius: 6px;
+    border: 1px solid #4a2020;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-title">WellnessAI</span>
+    <span class="logo-sub">Sistema de Bem-Estar Organizacional</span>
+  </div>
+  <div class="header-badges">
+    <span class="badge badge-lgpd">LGPD Compliant</span>
+    <span class="badge badge-live">● API Live</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- STATS -->
+  <div class="section-title">Visão Geral da Empresa</div>
+  <p class="section-sub">Análise de jornada — últimas 4 semanas • Dados anonimizados em nível de relatório</p>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-label">Funcionários Analisados</div>
+      <div class="stat-value" id="totalEmp">—</div>
+      <div class="stat-desc">Base de dados ativa</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Em Risco Elevado</div>
+      <div class="stat-value danger" id="highRiskCount">—</div>
+      <div class="stat-desc">Score ≥ 60/100</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Média de Horas/Dia</div>
+      <div class="stat-value warn" id="avgHours">—</div>
+      <div class="stat-desc">Jornada padrão: 8h</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Departamentos</div>
+      <div class="stat-value good" id="deptCount">—</div>
+      <div class="stat-desc">Setores monitorados</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <h3>Ranking de Risco por Funcionário</h3>
+      <span class="badge badge-lgpd">IDs anonimizados</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Departamento</th>
+          <th>Cargo</th>
+          <th>Média (h/dia)</th>
+          <th>Dias Extras</th>
+          <th>Tendência</th>
+          <th>Score de Risco</th>
+        </tr>
+      </thead>
+      <tbody id="empTable">
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">Carregando dados...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- AI ANALYSIS -->
+  <div class="ai-panel">
+    <div class="ai-panel-header">
+      <div class="ai-icon">🧠</div>
+      <div>
+        <div style="font-weight:600;font-size:14px;">Análise Individual via IA</div>
+        <div style="font-size:11px;color:var(--muted);">Selecione um funcionário para análise preditiva de burnout</div>
+      </div>
+    </div>
+    <div class="ai-panel-content">
+      <div class="employee-selector" id="empSelector">
+        <span style="font-size:12px;color:var(--muted);align-self:center;">Carregando...</span>
+      </div>
+      <div class="ai-result" id="aiResult">
+        <div style="color:var(--muted);font-size:13px;font-style:italic;">
+          Selecione um funcionário acima para iniciar a análise de bem-estar com IA.
+          <br><br>
+          🔒 Os dados são processados de forma anonimizada conforme a LGPD.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIMATE -->
+  <div class="section-title" style="margin-top:8px;">Clima Organizacional</div>
+  <p class="section-sub">Análise macro por departamento • Visão estratégica para a diretoria</p>
+
+  <div class="ai-panel">
+    <div class="ai-panel-header">
+      <div class="ai-icon">📊</div>
+      <div>
+        <div style="font-weight:600;font-size:14px;">Análise de Clima via IA</div>
+        <div style="font-size:11px;color:var(--muted);">Dados agregados por departamento sem identificação individual</div>
+      </div>
+      <button id="climateBtn" onclick="loadClimate()" style="margin-left:auto;background:var(--accent2);color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Mono',monospace;">
+        Analisar Clima
+      </button>
+    </div>
+    <div class="ai-panel-content" id="climateContent">
+      <div style="color:var(--muted);font-size:13px;font-style:italic;">
+        Clique em "Analisar Clima" para gerar o relatório executivo de clima organizacional.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  WellnessAI — Projeto Gabriel Viana dos Reis &nbsp;·&nbsp; IA Ética e LGPD &nbsp;·&nbsp; 2025
+</footer>
+
+<script>
+const RISK_COLORS = {
+  critical: { bar: '#ef4444', chip: 'chip-critical', label: 'CRÍTICO' },
+  high:     { bar: '#f59e0b', chip: 'chip-high',     label: 'ALTO'    },
+  moderate: { bar: '#fde68a', chip: 'chip-moderate', label: 'MODERADO'},
+  low:      { bar: '#34d399', chip: 'chip-low',      label: 'BAIXO'   },
+};
+
+function getRiskTier(score) {
+  if (score >= 75) return 'critical';
+  if (score >= 55) return 'high';
+  if (score >= 35) return 'moderate';
+  return 'low';
+}
+
+function riskChip(score) {
+  const t = getRiskTier(score);
+  const r = RISK_COLORS[t];
+  return `<span class="chip ${r.chip}">${r.label}</span>`;
+}
+
+function trendArrow(trend) {
+  if (trend > 0.3) return `<span class="trend-up">↑ +${trend}h</span>`;
+  if (trend < -0.3) return `<span class="trend-down">↓ ${trend}h</span>`;
+  return `<span class="trend-flat">→ estável</span>`;
+}
+
+async function loadEmployees() {
+  const res = await fetch('/api/employees');
+  const data = await res.json();
+  const employees = data.data;
+
+  // Stats
+  document.getElementById('totalEmp').textContent = employees.length;
+  document.getElementById('highRiskCount').textContent = employees.filter(e => e.hoursRiskScore >= 60).length;
+  const avgH = (employees.reduce((a, e) => a + e.avgHours, 0) / employees.length).toFixed(1);
+  document.getElementById('avgHours').textContent = avgH + 'h';
+  document.getElementById('deptCount').textContent = [...new Set(employees.map(e => e.department))].length;
+
+  // Table
+  const tbody = document.getElementById('empTable');
+  tbody.innerHTML = employees.map(e => {
+    const tier = getRiskTier(e.hoursRiskScore);
+    const color = RISK_COLORS[tier].bar;
+    return `<tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${e.id}</span></td>
+      <td style="font-weight:500">${e.name}</td>
+      <td>${e.department}</td>
+      <td style="font-size:12px;color:var(--muted)">${e.role}</td>
+      <td><span style="font-family:'DM Mono',monospace">${e.avgHours}h</span></td>
+      <td><span style="font-family:'DM Mono',monospace">${e.overtimeDays} dias</span></td>
+      <td>${trendArrow(e.trend)}</td>
+      <td>
+        <div class="risk-bar-wrap">
+          <div class="risk-bar">
+            <div class="risk-bar-fill" style="width:${e.hoursRiskScore}%;background:${color}"></div>
+          </div>
+          <span class="risk-num" style="color:${color}">${e.hoursRiskScore}</span>
+          ${riskChip(e.hoursRiskScore)}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Selector buttons
+  const sel = document.getElementById('empSelector');
+  sel.innerHTML = employees.map(e => {
+    const isHigh = e.hoursRiskScore >= 60;
+    return `<button class="emp-btn${isHigh ? ' high-risk' : ''}" onclick="analyzeEmployee('${e.id}', this)">
+      ${e.id} · ${e.name.split(' ')[0]}${isHigh ? ' ⚠' : ''}
+    </button>`;
+  }).join('');
+}
+
+async function analyzeEmployee(id, btn) {
+  document.querySelectorAll('.emp-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const resultDiv = document.getElementById('aiResult');
+  resultDiv.innerHTML = `<div class="loading"><div class="spinner"></div>Analisando funcionário ${id} via IA... aguarde</div>`;
+
+  try {
+    const res = await fetch(`/api/employee/${id}/analyze`);
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.error);
+    const r = data.aiAnalysis;
+
+    const levelColors = {
+      'CRÍTICO': 'var(--critical)', 'ALTO': 'var(--warn)',
+      'MODERADO': '#fde68a', 'BAIXO': 'var(--low)'
+    };
+    const lc = levelColors[r.riskLevel] || 'var(--muted)';
+
+    resultDiv.innerHTML = `
+      <div class="result-grid">
+        <div class="result-section">
+          <div class="result-label">Nível de Risco</div>
+          <div class="risk-badge" style="background:${lc}22;color:${lc};border:1px solid ${lc}44">
+            ${r.riskLevel} &nbsp;·&nbsp; Score ${r.riskScore}/100
+          </div>
+          <p style="font-size:12px;line-height:1.6;color:var(--text)">${r.summary}</p>
+        </div>
+        <div class="result-section">
+          <div class="result-label">Indicadores Detectados</div>
+          <ul class="result-list">
+            ${r.indicators.map(i => `<li>${i}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="result-section">
+          <div class="result-label">Possíveis Causas Raiz</div>
+          <ul class="result-list">
+            ${r.rootCauses.map(c => `<li>${c}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="result-section">
+          <div class="result-label">Ciclo Circadiano</div>
+          <p style="font-size:12px;line-height:1.6;color:var(--text)">🌙 ${r.circadianNote}</p>
+          <p style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px">Próximo acompanhamento: ${r.followUpDays} dias</p>
+        </div>
+        <div class="result-section full">
+          <div class="result-label">Intervenções Recomendadas ao RH</div>
+          ${r.interventions.map(iv => {
+            const pc = iv.priority === 'IMEDIATA' ? 'var(--critical)' : iv.priority === 'CURTO_PRAZO' ? 'var(--warn)' : 'var(--accent)';
+            return `<div class="intervention-card">
+              <div class="int-header">
+                <span class="chip" style="background:${pc}22;color:${pc};border:1px solid ${pc}44">${iv.priority}</span>
+                <span class="chip" style="background:var(--surface2);color:var(--muted)">${iv.type}</span>
+                <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto">→ ${iv.responsible}</span>
+              </div>
+              <div class="int-action">${iv.action}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  } catch (err) {
+    resultDiv.innerHTML = `<div class="error-msg">Erro na análise: ${err.message}</div>`;
+  }
+}
+
+async function loadClimate() {
+  const btn = document.getElementById('climateBtn');
+  btn.disabled = true;
+  btn.textContent = 'Analisando...';
+  const content = document.getElementById('climateContent');
+  content.innerHTML = `<div class="loading" style="padding:20px"><div class="spinner"></div>Gerando análise de clima organizacional via IA...</div>`;
+
+  try {
+    const res = await fetch('/api/climate');
+    const data = await res.json();
+    const c = data.climate;
+    const depts = data.deptData;
+
+    const climateColors = {
+      'CRÍTICO': 'var(--critical)', 'PREOCUPANTE': 'var(--warn)',
+      'ATENÇÃO': '#fde68a', 'SAUDÁVEL': 'var(--low)'
+    };
+    const cc = climateColors[c.overallClimate] || 'var(--muted)';
+
+    content.innerHTML = `
+      <div style="margin-bottom:20px">
+        <div class="result-label" style="margin-bottom:8px">Clima Geral</div>
+        <div class="risk-badge" style="background:${cc}22;color:${cc};border:1px solid ${cc}44;font-size:16px">
+          ${c.overallClimate}
+        </div>
+        <p style="font-size:13px;line-height:1.7;color:var(--text);max-width:700px">${c.summary}</p>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div class="result-label" style="margin-bottom:8px">Departamento Prioritário</div>
+        <span class="chip chip-critical" style="font-size:12px;padding:5px 12px">${c.priorityDepartment}</span>
+      </div>
+
+      <div class="dept-grid">
+        ${depts.map(d => {
+          const tier = getRiskTier(d.avgRiskScore);
+          const color = RISK_COLORS[tier].bar;
+          const highlight = c.departmentHighlights.find(h => h.department === d.department);
+          return `<div class="dept-card">
+            <div class="dept-name">${d.department}</div>
+            <div class="dept-stats">${d.employees} funcionários · ${d.avgHoursPerDay}h/dia · ${d.avgCriticalDays} dias críticos</div>
+            <div style="margin:8px 0 4px">
+              <div class="risk-bar"><div class="risk-bar-fill" style="width:${d.avgRiskScore}%;background:${color}"></div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              ${riskChip(d.avgRiskScore)}
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:${color}">${d.avgRiskScore}/100</span>
+            </div>
+            ${highlight ? `<p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">${highlight.note}</p>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div style="margin-top:24px">
+        <div class="result-label" style="margin-bottom:8px">Recomendações Estratégicas</div>
+        <ul class="result-list">
+          ${c.companyRecommendations.map(r => `<li>${r}</li>`).join('')}
+        </ul>
+      </div>`;
+
+    btn.textContent = '↺ Reanalisar';
+    btn.disabled = false;
+  } catch (err) {
+    content.innerHTML = `<div class="error-msg">Erro: ${err.message}</div>`;
+    btn.textContent = 'Analisar Clima';
+    btn.disabled = false;
+  }
+}
+
+// Init
+loadEmployees();
+</script>
+</body>
+</html>
